@@ -1,0 +1,58 @@
+import tkinter as tk
+from tkinter import filedialog
+
+# Create the main application window
+root = tk.Tk()
+root.withdraw()  # Hide the main window
+
+# Create a file dialog for selecting Word documents
+file_path = filedialog.askopenfilename(
+    title="Select a Word Document",
+    filetypes=[("Word Files", "*.docx"), ("All Files", "*.*")]
+)
+
+if file_path:
+    print(f"Selected file: {file_path}")
+else:
+    print("No file selected.")
+
+# This line is necessary on some systems to properly close the tkinter app
+root.quit()
+
+import docx
+
+# Check if a Word document file_path is available
+if file_path:
+    try:
+        # Open the Word document using python-docx
+        doc = docx.Document(file_path)
+
+        # Specify the output file path where extracted content will be saved
+        output_file_path = "extracted_content.txt"
+
+        # Create a list to store extracted content
+        extracted_content = []
+
+        # Iterate through all elements in the document (paragraphs and tables)
+        for element in doc.element.body:
+            # Check if the element is a paragraph
+            if isinstance(element, docx.text.paragraph.Paragraph):
+                paragraph_text = element.text.strip()
+                if paragraph_text:
+                    extracted_content.append(paragraph_text)
+            # Check if the element is a table
+            elif isinstance(element, docx.table.Table):
+                for row in element.rows:
+                    row_text = "\t".join(cell.text.strip() for cell in row.cells)
+                    extracted_content.append(row_text)
+
+        # Write the extracted content to the output file
+        with open(output_file_path, "w", encoding="utf-8") as output_file:
+            for content in extracted_content:
+                output_file.write(content + "\n")
+
+        print(f"Content extracted and saved to '{output_file_path}'.")
+    except Exception as e:
+        print(f"Error: {str(e)}")
+else:
+    print("No file selected.")
